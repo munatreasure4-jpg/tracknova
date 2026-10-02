@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Mail, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowRight, Building2, Mail, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 const fadeIn = {
@@ -9,11 +9,11 @@ const fadeIn = {
   show: { opacity: 1, y: 0, transition: { duration: 0.65 } }
 };
 
-export default function LoginPage() {
+export default function SignUpPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050b16] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(90,169,255,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(125,92,255,0.16),transparent_30%)]" />
-      <div className="absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-500/20 blur-[100px]" />
+      <div className="absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[100px]" />
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-10 lg:px-10">
         <motion.div
@@ -32,28 +32,28 @@ export default function LoginPage() {
               </Link>
 
               <div className="mt-14 space-y-6">
-                <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-100">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-100">
                   <Sparkles size={12} />
-                  Premium logistics platform
+                  Join the next generation of shipping
                 </div>
 
                 <h1 className="max-w-md text-4xl font-black leading-tight text-white">
-                  Ship faster. Track smarter.
+                  Launch smarter shipping operations.
                 </h1>
                 <p className="max-w-md text-base leading-7 text-slate-300">
-                  Built for modern shippers and customers who expect real-time clarity, secure delivery, and premium experiences.
+                  Create your account to manage shipments, customers, routes, and realtime delivery visibility from one premium workspace.
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
               {[
-                { icon: ShieldCheck, label: 'Secure checkout and shipment data' },
-                { icon: TrendingUp, label: 'Faster deliveries with better routing' },
-                { icon: Mail, label: 'Instant updates from origin to destination' }
+                { icon: ShieldCheck, label: 'Enterprise-grade security' },
+                { icon: TrendingUp, label: 'Operational visibility across every shipment' },
+                { icon: Building2, label: 'Built for shipping teams and fulfillment partners' }
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm text-slate-200">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">
                     <Icon size={16} />
                   </div>
                   {label}
@@ -65,16 +65,36 @@ export default function LoginPage() {
           <div className="flex items-center justify-center p-6 sm:p-10">
             <div className="w-full max-w-md">
               <div className="mb-8">
-                <div className="text-sm uppercase tracking-[0.28em] text-slate-400">Welcome back</div>
-                <h2 className="mt-3 text-3xl font-black text-white">Log in</h2>
+                <div className="text-sm uppercase tracking-[0.28em] text-slate-400">Create account</div>
+                <h2 className="mt-3 text-3xl font-black text-white">Get started</h2>
               </div>
 
               <form className="space-y-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
+                    <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">First name</label>
+                    <input
+                      type="text"
+                      placeholder="Aiden"
+                      className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
+                    />
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
+                    <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Last name</label>
+                    <input
+                      type="text"
+                      placeholder="Cole"
+                      className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
+                    />
+                  </div>
+                </div>
+
                 <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
-                  <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Email</label>
+                  <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Work email</label>
                   <input
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="you@company.com"
                     className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
                   />
                 </div>
@@ -83,32 +103,31 @@ export default function LoginPage() {
                   <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Password</label>
                   <input
                     type="password"
-                    placeholder="••••••••••••"
+                    placeholder="Create a strong password"
                     className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <label className="text-slate-300">
-                    <input type="checkbox" className="mr-2 accent-blue-500" />
-                    Remember me
-                  </label>
-                  <button type="button" className="text-blue-300 hover:text-blue-200">
-                    Forgot password?
-                  </button>
+                <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
+                  <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Company</label>
+                  <input
+                    type="text"
+                    placeholder="TrackNova customer"
+                    className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
+                  />
                 </div>
 
                 <button
                   type="submit"
                   className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-violet-500 px-6 py-3.5 font-semibold text-white shadow-glow transition hover:brightness-110"
                 >
-                  Sign in
+                  Create account
                   <ArrowRight size={18} />
                 </button>
 
                 <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-slate-500">
                   <div className="h-px flex-1 bg-slate-700" />
-                  or continue with
+                  or sign up with
                   <div className="h-px flex-1 bg-slate-700" />
                 </div>
 
@@ -123,9 +142,9 @@ export default function LoginPage() {
               </form>
 
               <p className="mt-6 text-center text-sm text-slate-400">
-                New here?{' '}
-                <Link href="/signup" className="font-medium text-blue-300 hover:text-blue-200">
-                  Create account
+                Already have an account?{' '}
+                <Link href="/login" className="font-medium text-cyan-300 hover:text-cyan-200">
+                  Sign in
                 </Link>
               </p>
             </div>
