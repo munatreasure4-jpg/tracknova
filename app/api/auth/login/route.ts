@@ -18,14 +18,6 @@ export async function POST(request: NextRequest) {
     }
   });
 
-  const token = await (await import('@/lib/auth')).createSessionToken(result.user.id);
-  response.cookies.set('tracknova_session', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7
-  });
-
+  await setSessionCookie(response, result.user.id);
   return response;
 }

@@ -76,8 +76,8 @@ export async function loginUser(body: { email?: string; password?: string }) {
   return { user };
 }
 
-export function setSessionCookie(response: NextResponse, userId: string) {
-  const token = createSessionToken(userId);
+export async function setSessionCookie(response: NextResponse, userId: string) {
+  const token = await createSessionToken(userId);
   response.cookies.set('tracknova_session', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
