@@ -46,10 +46,12 @@ export async function POST(request: NextRequest) {
       eta: body.eta || '2-5 days',
       userId: user.id,
       events: {
-        create: {
-          status: 'created',
-          message: 'Shipment created and ready for pickup.'
-        }
+        create: [
+          {
+            status: 'created',
+            message: 'Shipment created and ready for pickup.'
+          }
+        ]
       }
     },
     include: { events: true }

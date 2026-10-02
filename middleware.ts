@@ -1,22 +1,24 @@
-import { NextResponse } from 'next/server';
-import { verifySessionToken } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-export async function middleware(request: Request) {
-  const token = request.headers.get('cookie')?.match(/tracknova_session=([^;]+)/)?.[1];
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: { trackingId: string } }
+) {
+  const trackingId = params.trackingId.toUpperCase();
 
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  const shipment = await prisma.shipment.findUnique({
+    where: { trackingNumber: trackingId },
+    include: {
+      events: {
+        orderBy: { createdAt: 'asc' }
+      }
+    }
+  });
+
+  if (!shipment) {
+    return NextResponse.json({ error: 'Tracking ID not found.' }, { status: 404 });
   }
 
-  try {
-    await verifySessionToken(token);
-  } catch {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  return NextResponse.next();
+  return NextResponse.json(shipment);
 }
-
-export const config = {
-  matcher: ['/dashboard/:path*']
-};
