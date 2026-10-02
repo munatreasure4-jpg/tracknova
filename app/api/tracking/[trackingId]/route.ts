@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { trackingRecords } from '@/lib/mock-data';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { trackingId: string } }
 ) {
   const trackingId = params.trackingId.toUpperCase();
-  const record = trackingRecords[trackingId];
 
-  if (!record) {
-    return NextResponse.json(
-      { error: 'Tracking ID not found.' },
-      { status: 404 }
-    );
+  const shipment = await prisma.shipment.findUnique({
+    where: { trackingNumber: trackingId },
+    include: {
+      events: {
+        orderBy: { createdAt: 'asc' }
+      }
+    }
+  });
+
+  if (!shipment) {
+    return NextResponse.json({ error: 'Tracking ID not found.' }, { status: 404 });
   }
 
-  return NextResponse.json(record);
+  return NextResponse.json(shipment);
 }

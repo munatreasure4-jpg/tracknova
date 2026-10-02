@@ -1,23 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loginUser, setSessionCookie } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { getCurrentUserFromRequest } from '@/lib/auth';
 
-export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const result = await loginUser(body);
+function buildTrackingNumber() {
+  return `TNX-${Math.floor(10000 + Math.random() * 90000)}`;
+}
 
-  if ('error' in result) {
-    return NextResponse.json({ error: result.error }, { status: 401 });
+export async function GET(request: NextRequest) {
+  const user = await getCurrentUserFromRequest(request);
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const response = NextResponse.json({
-    message: 'Login successful.',
-    user: {
-      id: result.user.id,
-      name: result.user.name,
-      email: result.user.email
+  const shipments = await prisma.shipment.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      events: {
+        orderBy: { createdAt: 'asc' }
+      }
     }
   });
 
-  await setSessionCookie(response, result.user.id);
-  return response;
+  return NextResponse.json(shipments);
+}
+
+export async function POST(request: NextRequest) {
+  const user = await getCurrentUserFromRequest(request);
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = await request.json();
+
+  const shipment = await prisma.shipment.create({
+    data: {
+      trackingNumber: buildTrackingNumber(),
+      origin: body.origin || 'New York, NY',
+      destination: body.destination || 'Los Angeles, CA',
+      currentLocation: body.origin || 'New York, NY',
+      courier: body.courier || 'TrackNova Express',
+      status: 'created',
+      eta: body.eta || '2-5 days',
+      userId: user.id,
+      events: {
+        create: {
+          status: 'created',
+          message: 'Shipment created and ready for pickup.'
+        }
+      }
+    },
+    include: { events: true }
+  });
+
+  return NextResponse.json(shipment, { status: 201 });
 }

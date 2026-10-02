@@ -1,53 +1,35 @@
 "use client";
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Mail, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowRight, Building2, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
-const fadeIn = {
-  hidden: { opacity: 0, y: 18 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.65 } }
-};
+const features = [
+  { icon: ShieldCheck, label: 'Secure shipment data' },
+  { icon: TrendingUp, label: 'Clear delivery insights' },
+  { icon: Building2, label: 'Built for shipping teams' }
+];
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+export default function SignUpPage() {
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    company: ''
+  });
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError('');
-
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-
-    if (!response.ok) {
-      const result = await response.json();
-      setError(result.error || 'Login failed.');
-      return;
-    }
-
-    router.push('/dashboard');
-  }
+    alert('Signup ready — connect backend to persist users.');
+  };
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050b16] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(90,169,255,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(125,92,255,0.16),transparent_30%)]" />
-      <div className="absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-500/20 blur-[100px]" />
+      <div className="absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[100px]" />
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-10 lg:px-10">
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={fadeIn}
-          className="grid w-full max-w-5xl overflow-hidden rounded-[30px] border border-slate-800 bg-slate-950/70 shadow-panel backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr]"
-        >
+        <div className="grid w-full max-w-5xl overflow-hidden rounded-[30px] border border-slate-800 bg-slate-950/70 shadow-panel backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr]">
           <div className="relative hidden overflow-hidden border-r border-slate-800 bg-[linear-gradient(135deg,rgba(11,18,29,0.96),rgba(19,32,52,0.84))] p-10 lg:flex lg:flex-col lg:justify-between">
             <div>
               <Link href="/" className="mb-8 flex items-center gap-3">
@@ -58,28 +40,24 @@ export default function LoginPage() {
               </Link>
 
               <div className="mt-14 space-y-6">
-                <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-100">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-100">
                   <Sparkles size={12} />
-                  Premium logistics platform
+                  Join the next generation of shipping
                 </div>
 
                 <h1 className="max-w-md text-4xl font-black leading-tight text-white">
-                  Ship faster. Track smarter.
+                  Launch smarter shipping operations.
                 </h1>
                 <p className="max-w-md text-base leading-7 text-slate-300">
-                  Built for modern shippers and customers who expect real-time clarity, secure delivery, and premium experiences.
+                  Create your account to manage shipments, customers, routes, and realtime delivery visibility from one premium workspace.
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
-              {[
-                { icon: ShieldCheck, label: 'Secure checkout and shipment data' },
-                { icon: TrendingUp, label: 'Faster deliveries with better routing' },
-                { icon: Mail, label: 'Instant updates from origin to destination' }
-              ].map(({ icon: Icon, label }) => (
+              {features.map(({ icon: Icon, label }) => (
                 <div key={label} className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm text-slate-200">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">
                     <Icon size={16} />
                   </div>
                   {label}
@@ -91,18 +69,42 @@ export default function LoginPage() {
           <div className="flex items-center justify-center p-6 sm:p-10">
             <div className="w-full max-w-md">
               <div className="mb-8">
-                <div className="text-sm uppercase tracking-[0.28em] text-slate-400">Welcome back</div>
-                <h2 className="mt-3 text-3xl font-black text-white">Log in</h2>
+                <div className="text-sm uppercase tracking-[0.28em] text-slate-400">Create account</div>
+                <h2 className="mt-3 text-3xl font-black text-white">Get started</h2>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
+                    <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Full name</label>
+                    <input
+                      value={form.name}
+                      onChange={(event) => setForm({ ...form, name: event.target.value })}
+                      type="text"
+                      placeholder="Aiden Cole"
+                      className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
+                    />
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
+                    <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Company</label>
+                    <input
+                      value={form.company}
+                      onChange={(event) => setForm({ ...form, company: event.target.value })}
+                      type="text"
+                      placeholder="TrackNova customer"
+                      className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
+                    />
+                  </div>
+                </div>
+
                 <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
-                  <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Email</label>
+                  <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Work email</label>
                   <input
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    value={form.email}
+                    onChange={(event) => setForm({ ...form, email: event.target.value })}
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="you@company.com"
                     className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
                   />
                 </div>
@@ -110,41 +112,25 @@ export default function LoginPage() {
                 <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
                   <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Password</label>
                   <input
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    value={form.password}
+                    onChange={(event) => setForm({ ...form, password: event.target.value })}
                     type="password"
-                    placeholder="••••••••••••"
+                    placeholder="Create a strong password"
                     className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
                   />
-                </div>
-
-                {error ? (
-                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                    {error}
-                  </div>
-                ) : null}
-
-                <div className="flex items-center justify-between text-sm">
-                  <label className="text-slate-300">
-                    <input type="checkbox" className="mr-2 accent-blue-500" />
-                    Remember me
-                  </label>
-                  <button type="button" className="text-blue-300 hover:text-blue-200">
-                    Forgot password?
-                  </button>
                 </div>
 
                 <button
                   type="submit"
                   className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-violet-500 px-6 py-3.5 font-semibold text-white shadow-glow transition hover:brightness-110"
                 >
-                  Sign in
+                  Create account
                   <ArrowRight size={18} />
                 </button>
 
                 <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-slate-500">
                   <div className="h-px flex-1 bg-slate-700" />
-                  or continue with
+                  or sign up with
                   <div className="h-px flex-1 bg-slate-700" />
                 </div>
 
@@ -159,14 +145,14 @@ export default function LoginPage() {
               </form>
 
               <p className="mt-6 text-center text-sm text-slate-400">
-                New here?{' '}
-                <Link href="/signup" className="font-medium text-blue-300 hover:text-blue-200">
-                  Create account
+                Already have an account?{' '}
+                <Link href="/login" className="font-medium text-cyan-300 hover:text-cyan-200">
+                  Sign in
                 </Link>
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </main>
   );

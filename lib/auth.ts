@@ -1,60 +1,104 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { SignJWT, jwtVerify } from 'jose';
+import bcrypt from 'bcryptjs';
+import type { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUserFromRequest } from '@/lib/auth';
 
-function buildTrackingNumber() {
-  return `TNX-${Math.floor(10000 + Math.random() * 90000)}`;
+const secret = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'tracknova-development-secret'
+);
+
+export async function createSessionToken(userId: string) {
+  return new SignJWT({ userId })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(secret);
 }
 
-export async function GET(request: NextRequest) {
-  const user = await getCurrentUserFromRequest(request);
+export async function verifySessionToken(token: string) {
+  const { payload } = await jwtVerify(token, secret);
+  return payload;
+}
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function getCurrentUserFromRequest(request: NextRequest) {
+  const token = request.cookies.get('tracknova_session')?.value;
+  if (!token) return null;
+
+  try {
+    const payload = await verifySessionToken(token);
+    const userId = typeof payload.userId === 'string' ? payload.userId : null;
+    if (!userId) return null;
+
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true
+      }
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function signUpUser(body: { name?: string; email?: string; password?: string }) {
+  if (!body.name || !body.email || !body.password) {
+    return { error: 'Name, email, and password are required.' };
   }
 
-  const shipments = await prisma.shipment.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    include: {
-      events: {
-        orderBy: { createdAt: 'asc' }
-      }
+  if (body.password.length < 6) {
+    return { error: 'Password must be at least 6 characters long.' };
+  }
+
+  const email = body.email.toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email } });
+
+  if (existing) {
+    return { error: 'An account with this email already exists.' };
+  }
+
+  const passwordHash = await bcrypt.hash(body.password, 10);
+  const user = await prisma.user.create({
+    data: {
+      name: body.name.trim(),
+      email,
+      passwordHash
     }
   });
 
-  return NextResponse.json(shipments);
+  return { user };
 }
 
-export async function POST(request: NextRequest) {
-  const user = await getCurrentUserFromRequest(request);
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function loginUser(body: { email?: string; password?: string }) {
+  if (!body.email || !body.password) {
+    return { error: 'Email and password are required.' };
   }
 
-  const body = await request.json();
-
-  const shipment = await prisma.shipment.create({
-    data: {
-      trackingNumber: buildTrackingNumber(),
-      origin: body.origin || 'New York, NY',
-      destination: body.destination || 'Los Angeles, CA',
-      currentLocation: body.origin || 'New York, NY',
-      courier: body.courier || 'TrackNova Express',
-      status: 'created',
-      eta: body.eta || '2-5 days',
-      userId: user.id,
-      events: {
-        create: {
-          status: 'created',
-          message: 'Shipment created and ready for pickup.'
-        }
-      }
-    },
-    include: { events: true }
+  const user = await prisma.user.findUnique({
+    where: { email: body.email.toLowerCase() }
   });
 
-  return NextResponse.json(shipment, { status: 201 });
+  if (!user) {
+    return { error: 'Invalid email or password.' };
+  }
+
+  const valid = await bcrypt.compare(body.password, user.passwordHash);
+  if (!valid) {
+    return { error: 'Invalid email or password.' };
+  }
+
+  return { user };
 }
 
+export async function setSessionCookie(response: NextResponse, userId: string) {
+  const token = await createSessionToken(userId);
+  response.cookies.set('tracknova_session', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7
+  });
+}
