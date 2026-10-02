@@ -1,123 +1,59 @@
-"use client";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getCurrentUserFromRequest } from '@/lib/auth';
 
-import { Activity, ArrowUpRight, BellDot, Box, CreditCard, Package, Search, Settings, Truck } from 'lucide-react';
+function buildTrackingNumber() {
+  return `TNX-${Math.floor(10000 + Math.random() * 90000)}`;
+}
 
-const stats = [
-  { label: 'Shipments', value: '1,284', icon: Box },
-  { label: 'On time', value: '97.8%', icon: Activity },
-  { label: 'Revenue', value: '$82.4k', icon: CreditCard }
-];
+export async function GET(request: NextRequest) {
+  const user = await getCurrentUserFromRequest(request);
 
-const shipments = [
-  { id: 'TNX-47812', status: 'In transit', route: 'New York → Los Angeles', eta: 'Tomorrow' },
-  { id: 'TNX-89045', status: 'Packed', route: 'Chicago → Miami', eta: '2 days' },
-  { id: 'TNX-11023', status: 'Delivered', route: 'Seattle → Denver', eta: 'Completed' }
-];
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-export default function DashboardPage() {
-  return (
-    <main className="min-h-screen bg-[#050b16] px-6 py-8 text-white lg:px-10">
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-8 flex flex-col gap-4 rounded-[26px] border border-slate-800 bg-slate-900/80 p-5 shadow-panel md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.26em] text-blue-300">Operations hub</p>
-            <h1 className="mt-2 text-3xl font-black">Dashboard</h1>
-          </div>
+  const shipments = await prisma.shipment.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      events: {
+        orderBy: { createdAt: 'asc' }
+      }
+    }
+  });
 
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-4 py-2 text-sm text-slate-200">
-              <Search size={15} />
-              Search shipments
-            </button>
-            <button className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-950/60 text-slate-200">
-              <BellDot size={16} />
-            </button>
-            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-glow">
-              <Settings size={16} />
-            </button>
-          </div>
-        </header>
+  return NextResponse.json(shipments);
+}
 
-        <section className="grid gap-5 md:grid-cols-3">
-          {stats.map(({ label, value, icon: Icon }) => (
-            <div key={label} className="rounded-[24px] border border-slate-800 bg-slate-900/80 p-5 shadow-panel">
-              <div className="flex items-center justify-between">
-                <div className="text-sm uppercase tracking-[0.2em] text-slate-400">{label}</div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
-                  <Icon size={16} />
-                </div>
-              </div>
-              <div className="mt-5 text-3xl font-black text-white">{value}</div>
-            </div>
-          ))}
-        </section>
+export async function POST(request: NextRequest) {
+  const user = await getCurrentUserFromRequest(request);
 
-        <section className="mt-8 grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-[28px] border border-slate-800 bg-slate-900/80 p-5 shadow-panel">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <div className="text-sm uppercase tracking-[0.2em] text-slate-400">Recent shipments</div>
-                <h2 className="mt-2 text-2xl font-bold">Live dispatch board</h2>
-              </div>
-              <button className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm font-medium text-blue-100">
-                New shipment
-                <ArrowUpRight size={15} />
-              </button>
-            </div>
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-            <div className="space-y-4">
-              {shipments.map((item) => (
-                <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/15 to-violet-500/15 text-blue-200">
-                      <Package size={18} />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-white">{item.id}</div>
-                      <div className="text-sm text-slate-400">{item.route}</div>
-                    </div>
-                  </div>
+  const body = await request.json();
 
-                  <div className="flex items-center gap-3">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.status === 'Delivered' ? 'bg-emerald-500/10 text-emerald-300' : item.status === 'In transit' ? 'bg-blue-500/10 text-blue-300' : 'bg-violet-500/10 text-violet-300'}`}>
-                      {item.status}
-                    </span>
-                    <div className="text-sm text-slate-300">{item.eta}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+  const shipment = await prisma.shipment.create({
+    data: {
+      trackingNumber: buildTrackingNumber(),
+      origin: body.origin || 'New York, NY',
+      destination: body.destination || 'Los Angeles, CA',
+      currentLocation: body.origin || 'New York, NY',
+      courier: body.courier || 'TrackNova Express',
+      status: 'created',
+      eta: body.eta || '2-5 days',
+      userId: user.id,
+      events: {
+        create: {
+          status: 'created',
+          message: 'Shipment created and ready for pickup.'
+        }
+      }
+    },
+    include: { events: true }
+  });
 
-          <div className="rounded-[28px] border border-slate-800 bg-slate-900/80 p-5 shadow-panel">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <div className="text-sm uppercase tracking-[0.2em] text-slate-400">Fleet</div>
-                <h2 className="mt-2 text-2xl font-bold">Performance</h2>
-              </div>
-              <Truck className="text-blue-300" size={18} />
-            </div>
-
-            <div className="space-y-4">
-              {[
-                { label: 'Active vehicles', value: '146 / 178', percent: 82 },
-                { label: 'Average delay', value: '11 min', percent: 35 },
-                { label: 'Delivery success', value: '96.4%', percent: 96 }
-              ].map((item) => (
-                <div key={item.label}>
-                  <div className="mb-2 flex items-center justify-between text-sm text-slate-300">
-                    <span>{item.label}</span>
-                    <span className="font-semibold text-white">{item.value}</span>
-                  </div>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-800">
-                    <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style={{ width: `${item.percent}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+  return NextResponse.json(shipment, { status: 201 });
 }

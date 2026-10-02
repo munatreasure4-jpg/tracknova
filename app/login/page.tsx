@@ -1,136 +1,159 @@
 "use client";
 
-import { motion } from 'framer-motion';
-import { ArrowRight, Mail, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { Activity, BellDot, Box, CreditCard, Package, Search, Settings, Truck } from 'lucide-react';
 
-const fadeIn = {
-  hidden: { opacity: 0, y: 18 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.65 } }
+type Shipment = {
+  id: string;
+  trackingNumber: string;
+  origin: string;
+  destination: string;
+  currentLocation: string;
+  status: string;
+  eta: string;
+  courier: string;
+  createdAt: string;
 };
 
-export default function LoginPage() {
+const stats = [
+  { label: 'Shipments', value: '1,284', icon: Box },
+  { label: 'On time', value: '97.8%', icon: Activity },
+  { label: 'Revenue', value: '$82.4k', icon: CreditCard }
+];
+
+export default function DashboardPage() {
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchShipments() {
+      try {
+        const response = await fetch('/api/shipments');
+        if (!response.ok) {
+          setShipments([]);
+          return;
+        }
+        const data = await response.json();
+        setShipments(data);
+      } catch {
+        setShipments([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchShipments();
+  }, []);
+
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050b16] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(90,169,255,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(125,92,255,0.16),transparent_30%)]" />
-      <div className="absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-500/20 blur-[100px]" />
+    <main className="min-h-screen bg-[#050b16] px-6 py-8 text-white lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-8 flex flex-col gap-4 rounded-[26px] border border-slate-800 bg-slate-900/80 p-5 shadow-panel md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.26em] text-blue-300">Operations hub</p>
+            <h1 className="mt-2 text-3xl font-black">Dashboard</h1>
+          </div>
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-10 lg:px-10">
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={fadeIn}
-          className="grid w-full max-w-5xl overflow-hidden rounded-[30px] border border-slate-800 bg-slate-950/70 shadow-panel backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr]"
-        >
-          <div className="relative hidden overflow-hidden border-r border-slate-800 bg-[linear-gradient(135deg,rgba(11,18,29,0.96),rgba(19,32,52,0.84))] p-10 lg:flex lg:flex-col lg:justify-between">
-            <div>
-              <Link href="/" className="mb-8 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400 to-violet-500 text-lg font-black shadow-glow">
-                  T
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-4 py-2 text-sm text-slate-200">
+              <Search size={15} />
+              Search shipments
+            </button>
+            <button className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-950/60 text-slate-200">
+              <BellDot size={16} />
+            </button>
+            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-glow">
+              <Settings size={16} />
+            </button>
+          </div>
+        </header>
+
+        <section className="grid gap-5 md:grid-cols-3">
+          {stats.map(({ label, value, icon: Icon }) => (
+            <div key={label} className="rounded-[24px] border border-slate-800 bg-slate-900/80 p-5 shadow-panel">
+              <div className="flex items-center justify-between">
+                <div className="text-sm uppercase tracking-[0.2em] text-slate-400">{label}</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
+                  <Icon size={16} />
                 </div>
-                <div className="text-xl font-bold">TrackNova</div>
-              </Link>
-
-              <div className="mt-14 space-y-6">
-                <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-100">
-                  <Sparkles size={12} />
-                  Premium logistics platform
-                </div>
-
-                <h1 className="max-w-md text-4xl font-black leading-tight text-white">
-                  Ship faster. Track smarter.
-                </h1>
-                <p className="max-w-md text-base leading-7 text-slate-300">
-                  Built for modern shippers and customers who expect real-time clarity, secure delivery, and premium experiences.
-                </p>
               </div>
+              <div className="mt-5 text-3xl font-black text-white">{value}</div>
+            </div>
+          ))}
+        </section>
+
+        <section className="mt-8 grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-[28px] border border-slate-800 bg-slate-900/80 p-5 shadow-panel">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <div className="text-sm uppercase tracking-[0.2em] text-slate-400">Recent shipments</div>
+                <h2 className="mt-2 text-2xl font-bold">Live dispatch board</h2>
+              </div>
+              <button className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm font-medium text-blue-100">
+                New shipment
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="text-slate-300">Loading shipments...</div>
+            ) : shipments.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/50 p-6 text-slate-300">
+                No shipments yet. Create your first shipment from your shipping workspace.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {shipments.map((item) => (
+                  <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/15 to-violet-500/15 text-blue-200">
+                        <Package size={18} />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-white">{item.trackingNumber}</div>
+                        <div className="text-sm text-slate-400">{item.origin} → {item.destination}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-300' : item.status === 'in_transit' ? 'bg-blue-500/10 text-blue-300' : 'bg-violet-500/10 text-violet-300'}`}>
+                        {item.status}
+                      </span>
+                      <div className="text-sm text-slate-300">{item.eta}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-[28px] border border-slate-800 bg-slate-900/80 p-5 shadow-panel">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <div className="text-sm uppercase tracking-[0.2em] text-slate-400">Fleet</div>
+                <h2 className="mt-2 text-2xl font-bold">Performance</h2>
+              </div>
+              <Truck className="text-blue-300" size={18} />
             </div>
 
             <div className="space-y-4">
               {[
-                { icon: ShieldCheck, label: 'Secure checkout and shipment data' },
-                { icon: TrendingUp, label: 'Faster deliveries with better routing' },
-                { icon: Mail, label: 'Instant updates from origin to destination' }
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm text-slate-200">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
-                    <Icon size={16} />
+                { label: 'Active vehicles', value: '146 / 178', percent: 82 },
+                { label: 'Average delay', value: '11 min', percent: 35 },
+                { label: 'Delivery success', value: '96.4%', percent: 96 }
+              ].map((item) => (
+                <div key={item.label}>
+                  <div className="mb-2 flex items-center justify-between text-sm text-slate-300">
+                    <span>{item.label}</span>
+                    <span className="font-semibold text-white">{item.value}</span>
                   </div>
-                  {label}
+                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-800">
+                    <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style={{ width: `${item.percent}%` }} />
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="flex items-center justify-center p-6 sm:p-10">
-            <div className="w-full max-w-md">
-              <div className="mb-8">
-                <div className="text-sm uppercase tracking-[0.28em] text-slate-400">Welcome back</div>
-                <h2 className="mt-3 text-3xl font-black text-white">Log in</h2>
-              </div>
-
-              <form className="space-y-5">
-                <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
-                  <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Email</label>
-                  <input
-                    type="email"
-                    placeholder="you@example.com"
-                    className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
-                  />
-                </div>
-
-                <div className="rounded-2xl border border-slate-700 bg-slate-900/90 px-4 py-3">
-                  <label className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-400">Password</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••••••"
-                    className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between text-sm">
-                  <label className="text-slate-300">
-                    <input type="checkbox" className="mr-2 accent-blue-500" />
-                    Remember me
-                  </label>
-                  <button type="button" className="text-blue-300 hover:text-blue-200">
-                    Forgot password?
-                  </button>
-                </div>
-
-                <button
-                  type="submit"
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-violet-500 px-6 py-3.5 font-semibold text-white shadow-glow transition hover:brightness-110"
-                >
-                  Sign in
-                  <ArrowRight size={18} />
-                </button>
-
-                <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-slate-500">
-                  <div className="h-px flex-1 bg-slate-700" />
-                  or continue with
-                  <div className="h-px flex-1 bg-slate-700" />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <button type="button" className="rounded-full border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-slate-500">
-                    Google
-                  </button>
-                  <button type="button" className="rounded-full border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-slate-500">
-                    Apple
-                  </button>
-                </div>
-              </form>
-
-              <p className="mt-6 text-center text-sm text-slate-400">
-                New here?{' '}
-                <Link href="/signup" className="font-medium text-blue-300 hover:text-blue-200">
-                  Create account
-                </Link>
-              </p>
-            </div>
-          </div>
-        </motion.div>
+        </section>
       </div>
     </main>
   );
